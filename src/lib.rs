@@ -4,12 +4,10 @@ use elements::bitcoin::hashes::{ripemd160};
 use elements::hashes::Hash;
 use elements::hex::{FromHex, ToHex};
 use elements::opcodes::Ordinary::OP_IF;
-use elements::{opcodes, Script, script};
-use elements::hashes::serde_macros::serde_details::SerdeHash;
-use elements::script::{Builder, Instruction};
+use elements::{opcodes};
+use elements::script::{Builder};
 use elements::secp256k1_zkp::PublicKey;
 use hex::decode;
-use serde::Serialize;
 
 #[no_mangle]
 pub extern fn reconstruct_swap_script(
@@ -55,13 +53,12 @@ pub extern fn extract_claim_public_key(comparison_script: *const c_char) -> *mut
     while let Some(instruction) = iter.next() {
         let ins = instruction.unwrap();
         if ins.op() != None {
-            if (ins.op().unwrap() == elements::opcodes::All::from(OP_IF as u8)) {
+            if ins.op().unwrap() == elements::opcodes::All::from(OP_IF as u8) {
                 found_op_if = true;
                 continue;
             }
         }
-        if (found_op_if) {
-            found_op_if = false;
+        if found_op_if {
             let claim_public_key = PublicKey::from_slice(ins.push_bytes().unwrap()).unwrap().to_hex();
             return CString::new(claim_public_key.to_owned()).unwrap().into_raw();
         }
